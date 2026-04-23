@@ -11,8 +11,8 @@ services:
     image: mongo
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     volumes:
       - db:/data/db
     ports:
@@ -49,6 +49,19 @@ services:
       - backend
     networks:
       - internal
+
+  mongo-seed:
+    image: mongo:latest
+    restart: "no"
+    depends_on:
+      - mongo
+    volumes:
+      - ./.dump:/dump
+    networks:
+      - internal
+    entrypoint: >
+      sh -c "mongoimport --host mongo --username ${MONGO_ROOT_USERNAME} --password ${MONGO_ROOT_PASSWORD} --authenticationDatabase admin --db weblarek --collection users --type json --file /dump/weblarek.users.json --jsonArray &&
+             mongoimport --host mongo --username ${MONGO_ROOT_USERNAME} --password ${MONGO_ROOT_PASSWORD} --authenticationDatabase admin --db weblarek --collection products --type json --file /dump/weblarek.products.json --jsonArray"
 
 volumes:
   frontend:
