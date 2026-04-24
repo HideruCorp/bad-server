@@ -2,6 +2,7 @@ import Button from '@components/button'
 import DetailInfo from '@components/detail-info'
 import { OrderData } from '@slices/orders/type'
 import clsx from 'clsx'
+import DOMPurify from 'dompurify'
 import { format } from 'date-fns'
 import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -73,7 +74,7 @@ export default function ProfileOrderDetail() {
                         {dataInfo.comment ? (
                             <div
                                 dangerouslySetInnerHTML={{
-                                    __html: dataInfo.comment,
+                                    __html: DOMPurify.sanitize(dataInfo.comment),
                                 }}
                             />
                         ) : (

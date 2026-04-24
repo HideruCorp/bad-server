@@ -6,6 +6,7 @@ import { useActionCreators, useDispatch, useSelector } from '@store/hooks'
 import { StatusType } from '@types'
 import clsx from 'clsx'
 import { format } from 'date-fns'
+import DOMPurify from 'dompurify'
 import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { selectOrderByNumber } from '../../services/selector'
@@ -103,7 +104,7 @@ export default function AdminOrderDetail() {
                     <>
                         <div
                             dangerouslySetInnerHTML={{
-                                __html: dataInfo.comment,
+                                __html: DOMPurify.sanitize(dataInfo.comment),
                             }}
                         />
                     </>
