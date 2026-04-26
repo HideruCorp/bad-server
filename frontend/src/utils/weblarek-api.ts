@@ -33,6 +33,7 @@ export type ApiListResponse<Type> = {
 class Api {
     private readonly baseUrl: string
     protected options: RequestInit
+    private csrfToken: string | null = null
 
     constructor(baseUrl: string, options: RequestInit = {}) {
         this.baseUrl = baseUrl
@@ -53,7 +54,39 @@ class Api {
                   )
     }
 
+    getCsrfToken = async (): Promise<string> => {
+        const res = await fetch(`${this.baseUrl}/csrf-token`, {
+            credentials: 'include',
+            headers: {
+                Authorization: `Bearer ${getCookie('accessToken')}`,
+            },
+        })
+        const data = await res.json()
+        return data.csrfToken
+    }
+
+    setCsrfToken(token: string) {
+        this.csrfToken = token
+    }
+
+    private ensureCsrfToken = async (): Promise<string> => {
+        if (!this.csrfToken) {
+            this.csrfToken = await this.getCsrfToken()
+        }
+        return this.csrfToken
+    }
+
     protected async request<T>(endpoint: string, options: RequestInit) {
+        const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(
+            options.method || ''
+        )
+        if (isMutation) {
+            const token = await this.ensureCsrfToken()
+            options.headers = {
+                ...options.headers,
+                'x-csrf-token': token,
+            }
+        }
         try {
             const res = await fetch(`${this.baseUrl}${endpoint}`, {
                 ...this.options,
@@ -72,13 +105,21 @@ class Api {
         })
     }
 
-    protected requestWithRefresh = async <T>(
+    protected requestWithRecovery = async <T>(
         endpoint: string,
         options: RequestInit
     ) => {
         try {
             return await this.request<T>(endpoint, options)
-        } catch (error) {
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string }
+            if (err.statusCode === 403 && err.message === 'invalid csrf token') {
+                this.csrfToken = await this.getCsrfToken()
+                return this.request<T>(endpoint, {
+                    ...options,
+                    headers: { ...options.headers, 'x-csrf-token': this.csrfToken },
+                })
+            }
             const refreshData = await this.refreshToken()
             if (!refreshData.success) {
                 return Promise.reject(refreshData)
@@ -147,7 +188,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     createOrder = (order: IOrder): Promise<IOrderResult> => {
-        return this.requestWithRefresh<IOrderResult>('/order', {
+        return this.requestWithRecovery<IOrderResult>('/order', {
             method: 'POST',
             body: JSON.stringify(order),
             headers: {
@@ -161,7 +202,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
         status: StatusType,
         orderNumber: string
     ): Promise<IOrderResult> => {
-        return this.requestWithRefresh<IOrderResult>(`/order/${orderNumber}`, {
+        return this.requestWithRecovery<IOrderResult>(`/order/${orderNumber}`, {
             method: 'PATCH',
             body: JSON.stringify({ status }),
             headers: {
@@ -177,7 +218,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
         const queryParams = new URLSearchParams(
             filters as Record<string, string>
         ).toString()
-        return this.requestWithRefresh<IOrderPaginationResult>(
+        return this.requestWithRecovery<IOrderPaginationResult>(
             `/order/all?${queryParams}`,
             {
                 method: 'GET',
@@ -194,7 +235,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
         const queryParams = new URLSearchParams(
             filters as Record<string, string>
         ).toString()
-        return this.requestWithRefresh<IOrderPaginationResult>(
+        return this.requestWithRecovery<IOrderPaginationResult>(
             `/order/all/me?${queryParams}`,
             {
                 method: 'GET',
@@ -206,7 +247,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     getOrderByNumber = (orderNumber: string): Promise<IOrderResult> => {
-        return this.requestWithRefresh<IOrderResult>(`/order/${orderNumber}`, {
+        return this.requestWithRecovery<IOrderResult>(`/order/${orderNumber}`, {
             method: 'GET',
             headers: { Authorization: `Bearer ${getCookie('accessToken')}` },
         })
@@ -215,7 +256,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     getOrderCurrentUserByNumber = (
         orderNumber: string
     ): Promise<IOrderResult> => {
-        return this.requestWithRefresh<IOrderResult>(
+        return this.requestWithRecovery<IOrderResult>(
             `/order/me/${orderNumber}`,
             {
                 method: 'GET',
@@ -249,14 +290,14 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     getUser = () => {
-        return this.requestWithRefresh<UserResponse>('/auth/user', {
+        return this.requestWithRecovery<UserResponse>('/auth/user', {
             method: 'GET',
             headers: { Authorization: `Bearer ${getCookie('accessToken')}` },
         })
     }
 
     getUserRoles = () => {
-        return this.requestWithRefresh<string[]>('/auth/user/roles', {
+        return this.requestWithRecovery<string[]>('/auth/user/roles', {
             method: 'GET',
             headers: { Authorization: `Bearer ${getCookie('accessToken')}` },
         })
@@ -268,7 +309,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
         const queryParams = new URLSearchParams(
             filters as Record<string, string>
         ).toString()
-        return this.requestWithRefresh<ICustomerPaginationResult>(
+        return this.requestWithRecovery<ICustomerPaginationResult>(
             `/customers?${queryParams}`,
             {
                 method: 'GET',
@@ -280,7 +321,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     getCustomerById = (idCustomer: string) => {
-        return this.requestWithRefresh<ICustomerResult>(
+        return this.requestWithRecovery<ICustomerResult>(
             `/customers/${idCustomer}`,
             {
                 method: 'GET',
@@ -300,7 +341,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
 
     createProduct = (data: Omit<IProduct, '_id'>) => {
         console.log(data)
-        return this.requestWithRefresh<IProduct>('/product', {
+        return this.requestWithRecovery<IProduct>('/product', {
             method: 'POST',
             body: JSON.stringify(data),
             headers: {
@@ -317,7 +358,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     uploadFile = (data: FormData) => {
-        return this.requestWithRefresh<IFile>('/upload', {
+        return this.requestWithRecovery<IFile>('/upload', {
             method: 'POST',
             body: data,
             headers: {
@@ -330,7 +371,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     updateProduct = (data: Partial<Omit<IProduct, '_id'>>, id: string) => {
-        return this.requestWithRefresh<IProduct>(`/product/${id}`, {
+        return this.requestWithRecovery<IProduct>(`/product/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(data),
             headers: {
@@ -347,7 +388,7 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     deleteProduct = (id: string) => {
-        return this.requestWithRefresh<IProduct>(`/product/${id}`, {
+        return this.requestWithRecovery<IProduct>(`/product/${id}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${getCookie('accessToken')}`,
