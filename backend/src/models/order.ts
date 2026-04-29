@@ -1,16 +1,10 @@
 /* eslint-disable prefer-arrow-callback */
 import mongoose, { Document, Schema, Types } from 'mongoose'
 import validator from 'validator'
-import { PaymentType, phoneRegExp } from '../middlewares/validations'
+import { phoneRegExp } from '../middlewares/validations'
+import { StatusType, PaymentType } from '../types/order'
 import Counter from './counter'
 import User from './user'
-
-export enum StatusType {
-    Cancelled = 'cancelled',
-    Completed = 'completed',
-    New = 'new',
-    Delivering = 'delivering',
-}
 
 export interface IOrder extends Document {
     id: Types.ObjectId

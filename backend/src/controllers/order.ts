@@ -6,9 +6,14 @@ import NotFoundError from '../errors/not-found-error'
 import Order, { IOrder } from '../models/order'
 import Product, { IProduct } from '../models/product'
 import User from '../models/user'
+import { StatusType } from '../types/order'
+import escapeRegExp from '../utils/escapeRegExp'
 
 // eslint-disable-next-line max-len
 // GET /orders?page=2&limit=5&sort=totalAmount&order=desc&orderDateFrom=2024-07-01&orderDateTo=2024-08-01&status=delivering&totalAmountFrom=100&totalAmountTo=1000&search=%2B1
+
+const ALLOWED_SORT_FIELDS = ['createdAt', 'totalAmount', 'orderNumber']
+const ALLOWED_SORT_ORDERS: Record<string, 1 | -1> = { asc: 1, desc: -1 }
 
 export const getOrders = async (
     req: Request,
@@ -31,12 +36,9 @@ export const getOrders = async (
 
         const filters: FilterQuery<Partial<IOrder>> = {}
 
-        if (status) {
-            if (typeof status === 'object') {
-                Object.assign(filters, status)
-            }
-            if (typeof status === 'string') {
-                filters.status = status
+        if (status && typeof status === 'string') {
+            if ((Object.values(StatusType) as string[]).includes(status)) {
+                filters.status = status as StatusType
             }
         }
 
@@ -91,7 +93,7 @@ export const getOrders = async (
         ]
 
         if (search) {
-            const searchRegex = new RegExp(search as string, 'i')
+            const searchRegex = new RegExp(escapeRegExp(search as string), 'i')
             const searchNumber = Number(search)
 
             const searchConditions: any[] = [{ 'products.title': searchRegex }]
@@ -112,7 +114,9 @@ export const getOrders = async (
         const sort: { [key: string]: any } = {}
 
         if (sortField && sortOrder) {
-            sort[sortField as string] = sortOrder === 'desc' ? -1 : 1
+            const field = ALLOWED_SORT_FIELDS.includes(sortField as string) ? sortField as string : 'createdAt'
+            const order = ALLOWED_SORT_ORDERS[sortOrder as string] ?? -1
+            sort[field] = order
         }
 
         aggregatePipeline.push(
