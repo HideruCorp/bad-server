@@ -148,3 +148,35 @@ export const validateOrderQuery = celebrate({
         orderDateTo: Joi.string().isoDate(),
     }),
 })
+
+export const validateOrderCurrentUserQuery = celebrate({
+    query: Joi.object().keys({
+        search: Joi.string().max(200),
+        page: Joi.number().integer().min(1),
+        limit: Joi.number().integer().min(1).max(100),
+    }),
+})
+
+export const validateCustomerQuery = celebrate({
+    query: Joi.object().keys({
+        search: Joi.string().max(200),
+        page: Joi.number().integer().min(1),
+        limit: Joi.number().integer().min(1).max(100),
+        sortField: Joi.string().valid(
+            'createdAt',
+            'totalAmount',
+            'orderCount',
+            'lastOrderDate',
+            'name'
+        ),
+        sortOrder: Joi.string().valid('asc', 'desc'),
+        registrationDateFrom: Joi.string().isoDate(),
+        registrationDateTo: Joi.string().isoDate(),
+        lastOrderDateFrom: Joi.string().isoDate(),
+        lastOrderDateTo: Joi.string().isoDate(),
+        totalAmountFrom: Joi.number().min(0),
+        totalAmountTo: Joi.number().min(0),
+        orderCountFrom: Joi.number().integer().min(0),
+        orderCountTo: Joi.number().integer().min(0),
+    }),
+})

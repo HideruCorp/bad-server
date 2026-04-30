@@ -9,14 +9,18 @@ import {
     updateOrder,
 } from '../controllers/order'
 import auth, { roleGuardMiddleware } from '../middlewares/auth'
-import { validateOrderBody, validateOrderQuery } from '../middlewares/validations'
+import {
+    validateOrderBody,
+    validateOrderCurrentUserQuery,
+    validateOrderQuery,
+} from '../middlewares/validations'
 import { Role } from '../models/user'
 
 const orderRouter = Router()
 
 orderRouter.post('/', auth, validateOrderBody, createOrder)
 orderRouter.get('/all', auth, validateOrderQuery, getOrders)
-orderRouter.get('/all/me', auth, getOrdersCurrentUser)
+orderRouter.get('/all/me', auth, validateOrderCurrentUserQuery, getOrdersCurrentUser)
 orderRouter.get(
     '/:orderNumber',
     auth,
