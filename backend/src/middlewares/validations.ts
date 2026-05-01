@@ -103,7 +103,9 @@ export const validateProductBody = validate({
             'string.empty': 'Поле "title" должно быть заполнено',
         }),
         image: Joi.object().keys({
-            fileName: Joi.string().required(),
+            fileName: Joi.string()
+                .required()
+                .pattern(/^[^/\\]+$/),
             originalName: Joi.string().required(),
         }),
         category: Joi.string().required().messages({
@@ -123,7 +125,9 @@ export const validateProductUpdateBody = validate({
             'string.max': 'Максимальная длина поля "name" - 30',
         }),
         image: Joi.object().keys({
-            fileName: Joi.string().required(),
+            fileName: Joi.string()
+                .required()
+                .pattern(/^[^/\\]+$/),
             originalName: Joi.string().required(),
         }),
         category: Joi.string(),

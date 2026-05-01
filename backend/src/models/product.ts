@@ -1,6 +1,7 @@
 import { unlink } from 'fs'
 import mongoose, { Document } from 'mongoose'
 import { join } from 'path'
+import { isPathWithin } from '../utils/pathSafety'
 
 export interface IFile {
     fileName: string
@@ -54,18 +55,25 @@ cardsSchema.pre('findOneAndUpdate', async function deleteOldImage() {
     const updateImage = this.getUpdate().$set?.image
     const docToUpdate = await this.model.findOne(this.getQuery())
     if (updateImage && docToUpdate) {
-        unlink(
-            join(__dirname, `../public/${docToUpdate.image.fileName}`),
-            (err) => console.log(err)
-        )
+        const targetPath = join(__dirname, `../public/${docToUpdate.image.fileName}`)
+        const publicDir = join(__dirname, '../public')
+        if (!isPathWithin(targetPath, publicDir)) {
+            console.warn(`Skipping deletion: path escapes public directory: ${targetPath}`)
+        } else {
+            unlink(targetPath, (err) => console.log(err))
+        }
     }
 })
 
 // Можно лучше: удалять файл с изображением после удаление сущности
 cardsSchema.post('findOneAndDelete', async (doc: IProduct) => {
-    unlink(join(__dirname, `../public/${doc.image.fileName}`), (err) =>
-        console.log(err)
-    )
+    const targetPath = join(__dirname, `../public/${doc.image.fileName}`)
+    const publicDir = join(__dirname, '../public')
+    if (!isPathWithin(targetPath, publicDir)) {
+        console.warn(`Skipping deletion: path escapes public directory: ${targetPath}`)
+    } else {
+        unlink(targetPath, (err) => console.log(err))
+    }
 })
 
 export default mongoose.model<IProduct>('product', cardsSchema)
