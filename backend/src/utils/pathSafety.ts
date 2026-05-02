@@ -1,4 +1,5 @@
-import { basename, resolve, sep } from 'path'
+import { extname, resolve, sep } from 'path'
+import uniqueSlug from 'unique-slug'
 
 export function isPathWithin(targetPath: string, baseDir: string): boolean {
     const resolved = resolve(targetPath)
@@ -7,5 +8,6 @@ export function isPathWithin(targetPath: string, baseDir: string): boolean {
 }
 
 export function sanitizeFileName(fileName: string): string {
-    return basename(fileName)
+    const ext = extname(fileName)
+    return `${uniqueSlug()}${ext}`
 }

@@ -3,6 +3,7 @@ import multer, { FileFilterCallback } from 'multer'
 import { mkdirSync } from 'fs'
 import { join } from 'path'
 import { sanitizeFileName } from '../utils/pathSafety'
+import { MAX_FILE_SIZE } from '../controllers/upload'
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
@@ -54,4 +55,4 @@ const fileFilter = (
     return cb(null, true)
 }
 
-export default multer({ storage, fileFilter })
+export default multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } })
