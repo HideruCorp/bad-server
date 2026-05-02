@@ -5,7 +5,7 @@ import { StatusType, PaymentType } from '../types/order'
 import BadRequestError from '../errors/bad-request-error'
 
 // eslint-disable-next-line no-useless-escape
-export const phoneRegExp = /^(\+\d+)?(?:\s|-?|\(?\d+\)?)+$/
+export const phoneRegExp = /^(\+\d+)?[\s\-]?\(?\d+\)?(?:[\s\-]\(?\d+\)?)*$/
 
 interface SchemaMap {
     body?: Joi.ObjectSchema
@@ -78,7 +78,7 @@ export const validateOrderBody = validate({
         email: Joi.string().email().required().messages({
             'string.empty': 'Не указан email',
         }),
-        phone: Joi.string().required().pattern(phoneRegExp).messages({
+        phone: Joi.string().required().max(20).pattern(phoneRegExp).messages({
             'string.empty': 'Не указан телефон',
         }),
         address: Joi.string().required().messages({
@@ -191,7 +191,7 @@ export const validateOrderQuery = validate({
         ),
         sortOrder: Joi.string().valid('asc', 'desc'),
         page: Joi.number().integer().min(1),
-        limit: Joi.number().integer().min(1).max(100),
+        limit: Joi.number().integer().min(1),
         search: Joi.string().max(200),
         totalAmountFrom: Joi.number().min(0),
         totalAmountTo: Joi.number().min(0),
@@ -204,7 +204,7 @@ export const validateOrderCurrentUserQuery = validate({
     query: Joi.object().keys({
         search: Joi.string().max(200),
         page: Joi.number().integer().min(1),
-        limit: Joi.number().integer().min(1).max(100),
+        limit: Joi.number().integer().min(1),
     }),
 })
 
@@ -212,7 +212,7 @@ export const validateCustomerQuery = validate({
     query: Joi.object().keys({
         search: Joi.string().max(200),
         page: Joi.number().integer().min(1),
-        limit: Joi.number().integer().min(1).max(100),
+        limit: Joi.number().integer().min(1),
         sortField: Joi.string().valid(
             'createdAt',
             'totalAmount',
