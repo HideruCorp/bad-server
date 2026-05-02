@@ -55,7 +55,7 @@ class Api {
     }
 
     getCsrfToken = async (): Promise<string> => {
-        const res = await fetch(`${this.baseUrl}/csrf-token`, {
+        const res = await fetch(`${this.baseUrl}/auth/csrf-token`, {
             credentials: 'include',
             headers: {
                 Authorization: `Bearer ${getCookie('accessToken')}`,
@@ -84,7 +84,7 @@ class Api {
             const token = await this.ensureCsrfToken()
             options.headers = {
                 ...options.headers,
-                'x-csrf-token': token,
+                'X-CSRF-Token': token,
             }
         }
         try {
@@ -113,11 +113,17 @@ class Api {
             return await this.request<T>(endpoint, options)
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string }
-            if (err.statusCode === 403 && err.message === 'invalid csrf token') {
+            if (
+                err.statusCode === 403 &&
+                err.message === 'invalid csrf token'
+            ) {
                 this.csrfToken = await this.getCsrfToken()
                 return this.request<T>(endpoint, {
                     ...options,
-                    headers: { ...options.headers, 'x-csrf-token': this.csrfToken },
+                    headers: {
+                        ...options.headers,
+                        'X-CSRF-Token': this.csrfToken,
+                    },
                 })
             }
             const refreshData = await this.refreshToken()

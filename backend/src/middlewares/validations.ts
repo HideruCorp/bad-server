@@ -36,9 +36,7 @@ export function validate(schemas: SchemaMap) {
             })
 
             if (error) {
-                const messages = error.details
-                    .map((d) => d.message)
-                    .join('; ')
+                const messages = error.details.map((d) => d.message).join('; ')
                 next(new BadRequestError(messages))
                 return true
             }
@@ -233,3 +231,17 @@ export const validateCustomerQuery = validate({
         orderCountTo: Joi.number().integer().min(0),
     }),
 })
+
+export const validateCustomerUpdateBody = validate({
+    body: Joi.object().keys({
+        name: Joi.string().min(2).max(30).messages({
+            'string.min': 'Минимальная длина поля "name" - 2',
+            'string.max': 'Максимальная длина поля "name" - 30',
+        }),
+        email: Joi.string()
+            .email()
+            .message('Поле "email" должно быть валидным email-адресом'),
+    }),
+})
+
+export const validateUserUpdateBody = validateCustomerUpdateBody

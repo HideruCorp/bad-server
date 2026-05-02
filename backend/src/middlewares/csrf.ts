@@ -9,7 +9,7 @@ const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
         }
         return req.cookies?.refreshToken || 'anonymous'
     },
-    cookieName: 'x-csrf-token',
+    cookieName: '_csrf',
     cookieOptions: {
         httpOnly: true,
         sameSite: 'strict',
@@ -18,7 +18,7 @@ const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     },
     size: 64,
     ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-    getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'] as string,
+    getCsrfTokenFromRequest: (req) => req.headers['X-CSRF-Token'] as string,
 })
 
 export { generateCsrfToken, doubleCsrfProtection }
