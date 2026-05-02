@@ -2,13 +2,7 @@ import { doubleCsrf } from 'csrf-csrf'
 
 const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => process.env.CSRF_SECRET || 'csrf-secret-dev',
-    getSessionIdentifier: (req) => {
-        const authHeader = req.header('Authorization')
-        if (authHeader?.startsWith('Bearer ')) {
-            return authHeader.split(' ')[1]
-        }
-        return req.cookies?.refreshToken || 'anonymous'
-    },
+    getSessionIdentifier: (req) => req.cookies?.refreshToken || 'anonymous',
     cookieName: '_csrf',
     cookieOptions: {
         httpOnly: true,
@@ -18,7 +12,7 @@ const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     },
     size: 64,
     ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-    getCsrfTokenFromRequest: (req) => req.headers['X-CSRF-Token'] as string,
+    getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'] as string,
 })
 
 export { generateCsrfToken, doubleCsrfProtection }
