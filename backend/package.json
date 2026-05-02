@@ -44,6 +44,7 @@
     "csrf-csrf": "^4.0.3",
     "dotenv": "^16.4.5",
     "express": "^4.22.1",
+    "express-rate-limit": "^8.4.1",
     "isomorphic-dompurify": "^3.10.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^2.1.35",
