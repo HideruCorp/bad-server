@@ -99,7 +99,8 @@ const deleteRefreshTokenInUser = async (
 
     const decodedRefreshTkn = jwt.verify(
         rfTkn,
-        REFRESH_TOKEN.secret
+        REFRESH_TOKEN.secret,
+        { algorithms: ['HS256'] }
     ) as JwtPayload
     const user = await User.findOne({
         _id: decodedRefreshTkn._id,
@@ -165,20 +166,11 @@ const refreshAccessToken = async (
 }
 
 const getCurrentUserRoles = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const userId = res.locals.user._id
     try {
-        await User.findById(userId, req.body, {
-            new: true,
-        }).orFail(
-            () =>
-                new NotFoundError(
-                    'Пользователь по заданному id отсутствует в базе'
-                )
-        )
         res.status(200).json(res.locals.user.roles)
     } catch (error) {
         next(error)

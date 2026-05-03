@@ -18,7 +18,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const accessTokenParts = authHeader.split(' ')
         const aTkn = accessTokenParts[1]
-        payload = jwt.verify(aTkn, ACCESS_TOKEN.secret) as JwtPayload
+        payload = jwt.verify(aTkn, ACCESS_TOKEN.secret, { algorithms: ['HS256'] }) as JwtPayload
 
         const user = await UserModel.findOne(
             {

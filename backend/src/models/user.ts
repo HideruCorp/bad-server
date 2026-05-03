@@ -137,6 +137,7 @@ userSchema.methods.generateAccessToken = function generateAccessToken() {
         },
         ACCESS_TOKEN.secret,
         {
+            algorithm: 'HS256',
             expiresIn: ACCESS_TOKEN.expiry,
             subject: user.id.toString(),
         }
@@ -153,6 +154,7 @@ userSchema.methods.generateRefreshToken =
             },
             REFRESH_TOKEN.secret,
             {
+                algorithm: 'HS256',
                 expiresIn: REFRESH_TOKEN.expiry,
                 subject: user.id.toString(),
             }
