@@ -8,6 +8,7 @@ import path from 'path'
 import { DB_ADDRESS, ORIGIN_ALLOW } from './config'
 import errorHandler from './middlewares/error-handler'
 import routes from './routes'
+import logger from './utils/logger'
 
 const { PORT = 3000 } = process.env
 const app = express()
@@ -48,14 +49,14 @@ app.options('*', cors({ origin: ORIGIN_ALLOW, credentials: true }))
 app.use(routes)
 app.use(errorHandler)
 
-// eslint-disable-next-line no-console
-
 const bootstrap = async () => {
     try {
         await mongoose.connect(DB_ADDRESS)
-        await app.listen(PORT, () => console.log('ok'))
+        await app.listen(PORT, () =>
+            logger.info('Server started', { port: PORT })
+        )
     } catch (error) {
-        console.error(error)
+        logger.error('Bootstrap failed', { error })
     }
 }
 

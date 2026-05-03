@@ -2,6 +2,7 @@ import { unlink } from 'fs'
 import mongoose, { Document } from 'mongoose'
 import { join } from 'path'
 import { isPathWithin } from '../utils/pathSafety'
+import logger from '../utils/logger'
 
 export interface IFile {
     fileName: string
@@ -58,9 +59,18 @@ cardsSchema.pre('findOneAndUpdate', async function deleteOldImage() {
         const targetPath = join(__dirname, `../public/${docToUpdate.image.fileName}`)
         const publicDir = join(__dirname, '../public')
         if (!isPathWithin(targetPath, publicDir)) {
-            console.warn(`Skipping deletion: path escapes public directory: ${targetPath}`)
+            logger.warn('Skipping deletion: path escapes public directory', {
+                targetPath,
+            })
         } else {
-            unlink(targetPath, (err) => console.log(err))
+            unlink(targetPath, (err) => {
+                if (err) {
+                    logger.warn('Failed to delete file', {
+                        path: targetPath,
+                        message: err.message,
+                    })
+                }
+            })
         }
     }
 })
@@ -70,9 +80,18 @@ cardsSchema.post('findOneAndDelete', async (doc: IProduct) => {
     const targetPath = join(__dirname, `../public/${doc.image.fileName}`)
     const publicDir = join(__dirname, '../public')
     if (!isPathWithin(targetPath, publicDir)) {
-        console.warn(`Skipping deletion: path escapes public directory: ${targetPath}`)
+        logger.warn('Skipping deletion: path escapes public directory', {
+            targetPath,
+        })
     } else {
-        unlink(targetPath, (err) => console.log(err))
+        unlink(targetPath, (err) => {
+            if (err) {
+                logger.warn('Failed to delete file', {
+                    path: targetPath,
+                    message: err.message,
+                })
+            }
+        })
     }
 })
 
