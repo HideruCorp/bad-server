@@ -38,6 +38,7 @@ class Api {
     constructor(baseUrl: string, options: RequestInit = {}) {
         this.baseUrl = baseUrl
         this.options = {
+            credentials: 'include',
             headers: {
                 ...((options.headers as object) ?? {}),
             },
@@ -57,9 +58,6 @@ class Api {
     getCsrfToken = async (): Promise<string> => {
         const res = await fetch(`${this.baseUrl}/auth/csrf-token`, {
             credentials: 'include',
-            headers: {
-                Authorization: `Bearer ${getCookie('accessToken')}`,
-            },
         })
         const data = await res.json()
         return data.csrfToken
@@ -101,7 +99,6 @@ class Api {
     private refreshToken = () => {
         return this.request<UserResponseToken>('/auth/token', {
             method: 'GET',
-            credentials: 'include',
         })
     }
 
@@ -283,7 +280,6 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         })
     }
 
@@ -294,7 +290,6 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         })
     }
 
@@ -344,7 +339,6 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     logoutUser = () => {
         return this.request<ServerResponse<unknown>>('/auth/logout', {
             method: 'GET',
-            credentials: 'include',
         })
     }
 
