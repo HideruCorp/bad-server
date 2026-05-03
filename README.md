@@ -1,7 +1,7 @@
 # Проектная работа "WebLarek. Плохой сервер.", спринт 17
 
-**Репозиторий:** [https://github.com/HideruCorp/bad-server](https://github.com/HideruCorp/bad-server)
 
+**Репозиторий:** https://github.com/HideruCorp/bad-server
 **Автор:** Азиев Дамир, 42 когорта, курс Фулстек-разработчик
 
 ## Подготовка к работе
