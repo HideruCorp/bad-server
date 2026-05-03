@@ -1,7 +1,8 @@
 import { doubleCsrf } from 'csrf-csrf'
+import { requireEnv } from '../utils/requireEnv'
 
 const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET || 'csrf-secret-dev',
+    getSecret: () => requireEnv('CSRF_SECRET', 'csrf-secret-dev'),
     getSessionIdentifier: (req) => req.cookies?.refreshToken || 'anonymous',
     cookieName: '_csrf',
     cookieOptions: {
