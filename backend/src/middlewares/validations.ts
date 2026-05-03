@@ -126,7 +126,8 @@ export const validateProductUpdateBody = validate({
         image: Joi.object().keys({
             fileName: Joi.string()
                 .required()
-                .pattern(/^[^/\\]+$/),
+                .pattern(/^[a-z0-9-]+(\.[a-z0-9]{1,10})?$/)
+                .max(100),
             originalName: Joi.string().required(),
         }),
         category: Joi.string(),

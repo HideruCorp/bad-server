@@ -55,7 +55,11 @@ export const logoutUser = createAsyncThunk<ServerResponse<unknown>, void>(
             secure: import.meta.env.MODE === 'production',
             sameSite: 'strict',
         })
-        setCookie('refreshToken', '', { expires: new Date(0) })
+        setCookie('refreshToken', '', {
+            expires: new Date(0),
+            secure: import.meta.env.MODE === 'production',
+            sameSite: 'strict',
+        })
         return data
     }
 )

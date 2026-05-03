@@ -110,7 +110,12 @@ const deleteRefreshTokenInUser = async (
         .update(rfTkn)
         .digest('hex')
 
+    const tokenLengthBefore = user.tokens.length
     user.tokens = user.tokens.filter((tokenObj) => tokenObj.token !== rTknHash)
+
+    if (user.tokens.length === tokenLengthBefore) {
+        throw new UnauthorizedError('Не валидный токен')
+    }
 
     await user.save()
 
