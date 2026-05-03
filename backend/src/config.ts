@@ -5,6 +5,7 @@ import { requireEnv } from './utils/requireEnv'
 export const { PORT = '3000', ORIGIN_ALLOW = 'http://localhost:5173' } =
     process.env
 export const { DB_ADDRESS = 'mongodb://127.0.0.1:27017/weblarek' } = process.env
+export const CACHE_TTL = Number(process.env.CACHE_TTL) || 60
 export const ACCESS_TOKEN = {
     secret: requireEnv('AUTH_ACCESS_TOKEN_SECRET', 'secret-dev'),
     expiry: process.env.AUTH_ACCESS_TOKEN_EXPIRY || '15m',
