@@ -9,7 +9,10 @@ const globalDefaults = {
 }
 
 const createLimiter = (overrides: LimiterConfig = {}) => {
-    if (process.env.RATE_LIMITED !== 'true') {
+    if (
+        process.env.NODE_ENV === 'development' &&
+        process.env.RATE_LIMITED !== 'true'
+    ) {
         return (_req: Request, _res: Response, next: NextFunction) => next()
     }
 

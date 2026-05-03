@@ -2,7 +2,8 @@ import { CookieOptions } from 'express'
 import ms from 'ms'
 import { requireEnv } from './utils/requireEnv'
 
-export const { PORT = '3000', ORIGIN_ALLOW = 'http://localhost:5173' } = process.env
+export const { PORT = '3000', ORIGIN_ALLOW = 'http://localhost:5173' } =
+    process.env
 export const { DB_ADDRESS = 'mongodb://127.0.0.1:27017/weblarek' } = process.env
 export const ACCESS_TOKEN = {
     secret: requireEnv('AUTH_ACCESS_TOKEN_SECRET', 'secret-dev'),
@@ -16,7 +17,7 @@ export const REFRESH_TOKEN = {
         options: {
             httpOnly: true,
             sameSite: 'strict',
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             maxAge: ms(process.env.AUTH_REFRESH_TOKEN_EXPIRY || '7d'),
             path: '/',
         } as CookieOptions,
