@@ -130,7 +130,10 @@ class Api {
             if (!refreshData.success) {
                 return Promise.reject(refreshData)
             }
-            setCookie('accessToken', refreshData.accessToken)
+            setCookie('accessToken', refreshData.accessToken, {
+                secure: import.meta.env.MODE === 'production',
+                sameSite: 'strict',
+            })
             return await this.request<T>(endpoint, {
                 ...options,
                 headers: {
@@ -346,7 +349,6 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
     }
 
     createProduct = (data: Omit<IProduct, '_id'>) => {
-        console.log(data)
         return this.requestWithRecovery<IProduct>('/product', {
             method: 'POST',
             body: JSON.stringify(data),
