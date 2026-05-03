@@ -5,7 +5,6 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import { Error as MongooseError } from 'mongoose'
 import { REFRESH_TOKEN } from '../config'
 import BadRequestError from '../errors/bad-request-error'
-import ConflictError from '../errors/conflict-error'
 import NotFoundError from '../errors/not-found-error'
 import UnauthorizedError from '../errors/unauthorized-error'
 import User from '../models/user'
@@ -57,7 +56,9 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         }
         if (error instanceof Error && error.message.includes('E11000')) {
             return next(
-                new ConflictError('Пользователь с таким email уже существует')
+                new BadRequestError(
+                    'Не удалось создать аккаунт. Проверьте данные или войдите, если уже зарегистрированы.'
+                )
             )
         }
         return next(error)
@@ -97,10 +98,9 @@ const deleteRefreshTokenInUser = async (
         throw new UnauthorizedError('Не валидный токен')
     }
 
-    const decodedRefreshTkn = jwt.verify(
-        rfTkn,
-        REFRESH_TOKEN.secret
-    ) as JwtPayload
+    const decodedRefreshTkn = jwt.verify(rfTkn, REFRESH_TOKEN.secret, {
+        algorithms: ['HS256'],
+    }) as JwtPayload
     const user = await User.findOne({
         _id: decodedRefreshTkn._id,
     }).orFail(() => new UnauthorizedError('Пользователь не найден в базе'))
@@ -110,7 +110,12 @@ const deleteRefreshTokenInUser = async (
         .update(rfTkn)
         .digest('hex')
 
+    const tokenLengthBefore = user.tokens.length
     user.tokens = user.tokens.filter((tokenObj) => tokenObj.token !== rTknHash)
+
+    if (user.tokens.length === tokenLengthBefore) {
+        throw new UnauthorizedError('Не валидный токен')
+    }
 
     await user.save()
 
@@ -165,20 +170,11 @@ const refreshAccessToken = async (
 }
 
 const getCurrentUserRoles = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const userId = res.locals.user._id
     try {
-        await User.findById(userId, req.body, {
-            new: true,
-        }).orFail(
-            () =>
-                new NotFoundError(
-                    'Пользователь по заданному id отсутствует в базе'
-                )
-        )
         res.status(200).json(res.locals.user.roles)
     } catch (error) {
         next(error)

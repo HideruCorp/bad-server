@@ -13,12 +13,12 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
     let payload: JwtPayload | null = null
     const authHeader = req.header('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-        throw new UnauthorizedError('Невалидный токен')
+        return next(new UnauthorizedError('Невалидный токен'))
     }
     try {
         const accessTokenParts = authHeader.split(' ')
         const aTkn = accessTokenParts[1]
-        payload = jwt.verify(aTkn, ACCESS_TOKEN.secret) as JwtPayload
+        payload = jwt.verify(aTkn, ACCESS_TOKEN.secret, { algorithms: ['HS256'] }) as JwtPayload
 
         const user = await UserModel.findOne(
             {

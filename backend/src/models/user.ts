@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import mongoose, { Document, HydratedDocument, Model, Types } from 'mongoose'
 import validator from 'validator'
-import md5 from 'md5'
+import bcrypt from 'bcryptjs'
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../config'
 import UnauthorizedError from '../errors/unauthorized-error'
@@ -117,7 +117,7 @@ const userSchema = new mongoose.Schema<IUser, IUserModel, IUserMethods>(
 userSchema.pre('save', async function hashingPassword(next) {
     try {
         if (this.isModified('password')) {
-            this.password = md5(this.password)
+            this.password = await bcrypt.hash(this.password, 12)
         }
         next()
     } catch (error) {
@@ -137,6 +137,7 @@ userSchema.methods.generateAccessToken = function generateAccessToken() {
         },
         ACCESS_TOKEN.secret,
         {
+            algorithm: 'HS256',
             expiresIn: ACCESS_TOKEN.expiry,
             subject: user.id.toString(),
         }
@@ -153,6 +154,7 @@ userSchema.methods.generateRefreshToken =
             },
             REFRESH_TOKEN.secret,
             {
+                algorithm: 'HS256',
                 expiresIn: REFRESH_TOKEN.expiry,
                 subject: user.id.toString(),
             }
@@ -178,7 +180,7 @@ userSchema.statics.findUserByCredentials = async function findByCredentials(
     const user = await this.findOne({ email })
         .select('+password')
         .orFail(() => new UnauthorizedError('Неправильные почта или пароль'))
-    const passwdMatch = md5(password) === user.password
+    const passwdMatch = await bcrypt.compare(password, user.password)
     if (!passwdMatch) {
         return Promise.reject(
             new UnauthorizedError('Неправильные почта или пароль')

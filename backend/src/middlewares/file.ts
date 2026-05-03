@@ -2,6 +2,8 @@ import { Request, Express } from 'express'
 import multer, { FileFilterCallback } from 'multer'
 import { mkdirSync } from 'fs'
 import { join } from 'path'
+import { sanitizeFileName } from '../utils/pathSafety'
+import { MAX_FILE_SIZE } from '../controllers/upload'
 
 type DestinationCallback = (error: Error | null, destination: string) => void
 type FileNameCallback = (error: Error | null, filename: string) => void
@@ -29,7 +31,7 @@ const storage = multer.diskStorage({
         file: Express.Multer.File,
         cb: FileNameCallback
     ) => {
-        cb(null, file.originalname)
+        cb(null, sanitizeFileName(file.originalname))
     },
 })
 
@@ -38,7 +40,6 @@ const types = [
     'image/jpg',
     'image/jpeg',
     'image/gif',
-    'image/svg+xml',
 ]
 
 const fileFilter = (
@@ -53,4 +54,4 @@ const fileFilter = (
     return cb(null, true)
 }
 
-export default multer({ storage, fileFilter })
+export default multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } })

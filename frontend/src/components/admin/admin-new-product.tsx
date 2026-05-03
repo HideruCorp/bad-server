@@ -53,7 +53,7 @@ export default function AdminNewProduct() {
 
     const handleCreateProduct = async () => {
         if (!selectedFile || !selectedCategory) {
-            console.log('Не выбран файл или категория')
+
             return
         }
         const dataProduct = {
